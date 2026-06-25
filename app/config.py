@@ -30,6 +30,9 @@ class Config:
     http_referer: str
     app_title: str
     embed_backend: str
+    groq_api_key: str
+    groq_base_url: str
+    groq_model: str
 
     @property
     def telemetry_path(self) -> Path:
@@ -67,4 +70,7 @@ def load_config() -> Config:
         http_referer=os.getenv("HTTP_REFERER", "https://github.com/fjkiani/factory-rag"),
         app_title=os.getenv("APP_TITLE", "factory-rag-mvp"),
         embed_backend=os.getenv("EMBED_BACKEND", "openrouter"),
+        groq_api_key=os.getenv("GROQ_API_KEY", ""),
+        groq_base_url=os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1"),
+        groq_model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
     )

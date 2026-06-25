@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · manufacturing-floor RAG</title>
+  <style>
+    :root {
+      --bg: #FAF9F3;
+      --bg-alt: #ECE9E2;
+      --ink: #000000;
+      --accent: #0279EE;
+      --good: #75A025;
+      --warn: #FF9400;
+      --bad: #c53030;
+      --refuse: #FD9BED;
+      --highlight: #E9ED4C;
+      --muted: #6b6f70;
+      --border: #d8d6cf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Liberation Sans", "Arimo", "DejaVu Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-alt);
+      display: flex;
+      gap: 16px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    header .sub {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    header .links { margin-left: auto; }
+    header .links a {
+      color: var(--accent);
+      text-decoration: none;
+      margin-left: 12px;
+      font-size: 12px;
+    }
+    header .links a:hover { text-decoration: underline; }
+
+    .banner-row {
+      padding: 8px 24px 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .banner {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .banner.warning { background: #fff3e0; border: 1px solid var(--warn); color: #663d00; }
+    .banner.info { background: #eef5ff; border: 1px solid var(--accent); color: #003366; }
+    .banner.error { background: #fde7e7; border: 1px solid var(--bad); color: #5a0d0d; }
+    .banner .tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.08);
+    }
+
+    .picker {
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .picker label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+    .picker select {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: white;
+      min-width: 280px;
+    }
+
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 16px 24px 120px 24px;
+    }
+
+    .msg {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .msg.user { background: white; }
+    .msg.assistant { background: white; }
+    .msg.assistant.refused { background: #fff5fc; border-color: var(--refuse); }
+    .msg .role {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .msg .body { white-space: pre-wrap; word-wrap: break-word; }
+    .msg .body code,
+    .msg .body .cite-pill {
+      background: var(--highlight);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: ui-monospace, "Liberation Mono", "Menlo", "Consolas", monospace;
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .msg .meta {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .chip {
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .chip.good { background: #ecf5da; border-color: var(--good); color: #2c4a08; }
+    .chip.warn { background: #fff3e0; border-color: var(--warn); color: #663d00; }
+    .chip.bad  { background: #fde7e7; border-color: var(--bad); color: #5a0d0d; }
+    .chip.muted { background: var(--bg-alt); }
+
+    .citation-panel {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--bg-alt);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+    }
+    .citation-panel .head {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .citation-panel .body { color: #333; white-space: pre-wrap; }
+
+    .candidates {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .candidates .cand {
+      display: inline-block;
+      margin-right: 8px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--bg-alt);
+    }
+
+    footer.composer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg-alt);
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+    }
+    footer.composer form {
+      max-width: 880px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+    }
+    footer.composer input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+    }
+    footer.composer button {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+    }
+    footer.composer button:disabled { background: var(--muted); cursor: not-allowed; }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 40px 0;
+      text-align: center;
+    }
+    .empty .examples { margin-top: 12px; }
+    .empty .examples button {
+      margin: 4px;
+      padding: 6px 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .empty .examples button:hover { background: var(--bg-alt); }
+
+    .spinner {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid var(--muted);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>{{ title }}</h1>
+  <span class="sub">manufacturing-floor RAG · v{{ app_version }}</span>
+  <div class="links">
+    <a href="/docs">Swagger</a>
+    <a href="/providers/catalog">Catalog JSON</a>
+    <a href="/providers/health">Health JSON</a>
+    <a href="https://github.com/fjkiani/factory-rag" target="_blank">GitHub</a>
+  </div>
+</header>
+
+<div class="banner-row" id="bannerRow"></div>
+
+<div class="picker">
+  <div>
+    <label for="llmSelect">Answer:</label>
+    <select id="llmSelect"></select>
+  </div>
+  <div>
+    <label for="judgeSelect">Judge:</label>
+    <select id="judgeSelect"></select>
+  </div>
+  <div id="healthStatus" style="margin-left:auto; font-size:12px; color: var(--muted);"></div>
+</div>
+
+<main id="thread">
+  <div class="empty" id="emptyState">
+    <div>Ask a question about safety, maintenance, or quality SOPs.</div>
+    <div class="examples">
+      <button onclick="document.getElementById('q').value='What PPE is required for HP-200 lockout?'; document.getElementById('q').focus();">Safety · PPE</button>
+      <button onclick="document.getElementById('q').value='How do I respond to fault E-318 on the lathe?'; document.getElementById('q').focus();">Maintenance · Fault</button>
+      <button onclick="document.getElementById('q').value='What is the AQL 1.0 sample size for a lot of 200 parts?'; document.getElementById('q').focus();">Quality · AQL</button>
+      <button onclick="document.getElementById('q').value='What PPE is required during the 500-hour CNC service?'; document.getElementById('q').focus();">Multi-domain</button>
+    </div>
+  </div>
+</main>
+
+<footer class="composer">
+  <form id="chatForm">
+    <input id="q" type="text" placeholder="Ask about safety, maintenance, or quality SOPs..." autocomplete="off" autofocus>
+    <button id="sendBtn" type="submit">Send</button>
+  </form>
+</footer>
+
+<script>
+// ------------------------------------------------------------------
+// State
+// ------------------------------------------------------------------
+const state = {
+  catalog: null,
+  defaults: null,
+  health: null,
+  // Each citation chunk we've fetched is cached so re-expanding is cheap.
+  // But we get full body_preview on the chat response already, so this is
+  // primarily for cross-message reuse.
+  chunkCache: new Map(),
+};
+
+// ------------------------------------------------------------------
+// Bootstrap: load catalog, populate dropdowns, start health polling
+// ------------------------------------------------------------------
+async function bootstrap() {
+  try {
+    const catalogResp = await fetch('/providers/catalog');
+    state.catalog = await catalogResp.json();
+    state.defaults = state.catalog.defaults || {};
+    renderModelDropdowns();
+  } catch (e) {
+    showBanner({ type: 'error', severity: 'error',
+                 message: 'Could not load model catalog. Backend may be down.' });
+  }
+  refreshHealth();
+  setInterval(refreshHealth, 30000);  // 30s
+}
+
+function renderModelDropdowns() {
+  const llmSelect = document.getElementById('llmSelect');
+  const judgeSelect = document.getElementById('judgeSelect');
+  llmSelect.innerHTML = '';
+  judgeSelect.innerHTML = '';
+  const answerOptions = state.catalog.entries.filter(e => e.roles.includes('answer'));
+  const judgeOptions = state.catalog.entries.filter(e => e.roles.includes('judge'));
+  for (const e of answerOptions) {
+    const opt = document.createElement('option');
+    opt.value = e.id;  // "<provider>/<model>"
+    opt.textContent = e.label;
+    opt.dataset.provider = e.provider;
+    opt.dataset.model = e.model;
+    if (state.defaults?.answer
+        && e.provider === state.defaults.answer.provider
+        && e.model === state.defaults.answer.model) {
+      opt.selected = true;
+    }
+    llmSelect.appendChild(opt);
+  }
+  for (const e of judgeOptions) {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.label;
+    opt.dataset.provider = e.provider;
+    opt.dataset.model = e.model;
+    if (state.defaults?.judge
+        && e.provider === state.defaults.judge.provider
+        && e.model === state.defaults.judge.model) {
+      opt.selected = true;
+    }
+    judgeSelect.appendChild(opt);
+  }
+}
+
+function selectedChoice(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel || sel.selectedIndex < 0) return null;
+  const opt = sel.options[sel.selectedIndex];
+  return { provider: opt.dataset.provider, model: opt.dataset.model };
+}
+
+// ------------------------------------------------------------------
+// Health polling -> top banner + small footer status
+// ------------------------------------------------------------------
+async function refreshHealth() {
+  try {
+    const r = await fetch('/providers/health');
+    state.health = await r.json();
+    renderHealthBanners();
+  } catch (e) {
+    // network blip — ignore quietly
+  }
+}
+
+function renderHealthBanners() {
+  const row = document.getElementById('bannerRow');
+  // Wipe ONLY the health banners; keep transient warnings emitted by chat calls.
+  row.querySelectorAll('[data-health="1"]').forEach(el => el.remove());
+  if (!state.health || !state.health.providers) return;
+  const degraded = state.health.providers.filter(p => p.degraded);
+  if (degraded.length === 0) {
+    document.getElementById('healthStatus').textContent = 'all providers healthy';
+    return;
+  }
+  document.getElementById('healthStatus').textContent =
+    `${degraded.length} provider${degraded.length > 1 ? 's' : ''} degraded`;
+  for (const p of degraded) {
+    const div = document.createElement('div');
+    div.className = 'banner warning';
+    div.dataset.health = '1';
+    div.innerHTML = `
+      <span class="tag">degraded</span>
+      <span><b>${p.provider}/${p.model}</b> has recent failures.
+      ${p.last_error ? `Last error: ${escapeHtml(p.last_error.slice(0, 180))}` : ''}</span>
+    `;
+    row.appendChild(div);
+  }
+}
+
+// ------------------------------------------------------------------
+// Chat submit
+// ------------------------------------------------------------------
+document.getElementById('chatForm').addEventListener('submit', onSubmit);
+
+async function onSubmit(ev) {
+  ev.preventDefault();
+  const input = document.getElementById('q');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('emptyState')?.remove();
+  appendUserMessage(text);
+  const placeholder = appendAssistantPlaceholder();
+  setSending(true);
+  try {
+    const payload = {
+      query: text,
+      llm: selectedChoice('llmSelect'),
+      judge: selectedChoice('judgeSelect'),
+    };
+    const resp = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    let data;
+    try { data = await resp.json(); }
+    catch (e) { data = { error: 'invalid response' }; }
+    if (!resp.ok) {
+      placeholder.remove();
+      appendErrorMessage(`HTTP ${resp.status}: ${JSON.stringify(data).slice(0, 240)}`);
+    } else {
+      placeholder.remove();
+      appendAssistantMessage(data);
+      // chat-emitted warnings stay visible until user dismisses or next call
+      renderChatWarnings(data.warnings || []);
+    }
+  } catch (e) {
+    placeholder.remove();
+    appendErrorMessage(`Network error: ${e.message}`);
+  } finally {
+    setSending(false);
+    // Re-refresh health in case the call changed something.
+    refreshHealth();
+  }
+}
+
+function setSending(sending) {
+  document.getElementById('sendBtn').disabled = sending;
+  document.getElementById('q').disabled = sending;
+}
+
+// ------------------------------------------------------------------
+// Message rendering
+// ------------------------------------------------------------------
+function appendUserMessage(text) {
+  const m = document.createElement('div');
+  m.className = 'msg user';
+  m.innerHTML = `<div class="role">you</div><div class="body"></div>`;
+  m.querySelector('.body').textContent = text;
+  document.getElementById('thread').appendChild(m);
+  scrollToBottom();
+}
+
+function appendAssistantPlaceholder() {
+  const m = document.createElement('div');
+  m.className = 'msg assistant';
+  m.innerHTML = `<div class="role">assistant</div>
+                 <div class="body"><span class="spinner"></span> thinking...</div>`;
+  document.getElementById('thread').appendChild(m);
+  scrollToBottom();
+  return m;
+}
+
+function appendErrorMessage(msg) {
+  const m = document.createElement('div');
+  m.className = 'msg assistant refused';
+  m.innerHTML = `<div class="role">error</div><div class="body"></div>`;
+  m.querySelector('.body').textContent = msg;
+  document.getElementById('thread').appendChild(m);
+  scrollToBottom();
+}
+
+function appendAssistantMessage(data) {
+  const m = document.createElement('div');
+  m.className = 'msg assistant' + (data.refused ? ' refused' : '');
+  const role = data.refused ? `refused · ${data.refusal_reason}` : 'assistant';
+  m.innerHTML = `
+    <div class="role">${escapeHtml(role)}</div>
+    <div class="body"></div>
+    <div class="meta"></div>
+  `;
+  // Body with inline citation pills.
+  const body = m.querySelector('.body');
+  body.appendChild(renderBodyWithCitations(data.answer || '', data.citations || []));
+  // Citation expand area
+  if (data.citations && data.citations.length) {
+    const wrap = document.createElement('div');
+    data.citations.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'citation-panel';
+      p.style.display = 'none';
+      p.dataset.chunkId = c.chunk_id;
+      p.innerHTML = `
+        <div class="head">${escapeHtml(c.chunk_id)} · ${escapeHtml(c.doc_title)} · ${escapeHtml(c.section_heading)}
+          <span class="chip muted">score ${(c.score || 0).toFixed(3)}</span>
+        </div>
+        <div class="body"></div>
+      `;
+      p.querySelector('.body').textContent = c.body_preview || '(no preview)';
+      wrap.appendChild(p);
+    });
+    body.appendChild(wrap);
+  }
+  // Meta chips
+  const meta = m.querySelector('.meta');
+  meta.appendChild(routeChip(data));
+  if (data.llm_used) meta.appendChild(servedByChip(data.llm_used));
+  if (data.judge) meta.appendChild(judgeChip(data.judge));
+  if (data.latency_ms?.total != null) meta.appendChild(latencyChip(data.latency_ms.total));
+  if (data.collections_queried?.length > 1) {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.textContent = `collections: ${data.collections_queried.join(', ')}`;
+    meta.appendChild(c);
+  }
+  // Route candidates (multi-route fanout)
+  if (data.route_candidates && data.route_candidates.length > 1) {
+    const c = document.createElement('div');
+    c.className = 'candidates';
+    c.textContent = 'candidates: ';
+    data.route_candidates.forEach(cand => {
+      const span = document.createElement('span');
+      span.className = 'cand';
+      span.textContent = `${cand.route} (${cand.confidence.toFixed(2)} · ${cand.source})`;
+      c.appendChild(span);
+    });
+    body.appendChild(c);
+  }
+  document.getElementById('thread').appendChild(m);
+  scrollToBottom();
+}
+
+function renderBodyWithCitations(text, citations) {
+  // Replace [CHUNK_ID] with a clickable pill that toggles the matching panel.
+  const known = new Set(citations.map(c => c.chunk_id));
+  const re = /\[([A-Z0-9][A-Z0-9_\-]+#\d+(?:\.\d+)*)\]/g;
+  const frag = document.createDocumentFragment();
+  let last = 0;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) {
+      frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+    }
+    const cid = match[1];
+    if (known.has(cid)) {
+      const btn = document.createElement('button');
+      btn.className = 'cite-pill';
+      btn.textContent = `[${cid}]`;
+      btn.title = `Click to expand ${cid}`;
+      btn.type = 'button';
+      btn.onclick = (ev) => {
+        const parent = ev.target.closest('.msg');
+        const panel = parent?.querySelector(`.citation-panel[data-chunk-id="${cssEscape(cid)}"]`);
+        if (panel) {
+          panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+      };
+      frag.appendChild(btn);
+    } else {
+      // Unknown citation — render as plain text bracket.
+      frag.appendChild(document.createTextNode(match[0]));
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) {
+    frag.appendChild(document.createTextNode(text.slice(last)));
+  }
+  return frag;
+}
+
+function routeChip(data) {
+  const span = document.createElement('span');
+  let cls = 'chip muted';
+  if (data.route === 'safety') cls = 'chip warn';
+  else if (data.route === 'maintenance') cls = 'chip';
+  else if (data.route === 'quality') cls = 'chip good';
+  else if (data.route === 'none') cls = 'chip bad';
+  span.className = cls;
+  span.textContent = `route: ${data.route} · ${(data.route_confidence || 0).toFixed(2)} · ${data.route_source}`;
+  return span;
+}
+
+function servedByChip(llm_used) {
+  const span = document.createElement('span');
+  span.className = llm_used.provider_fallback_used ? 'chip warn' : 'chip';
+  let txt = `served by ${llm_used.provider}/${llm_used.model}`;
+  if (llm_used.provider_fallback_used) {
+    txt += ` (fallback from ${llm_used.fallback_chain[0]})`;
+  }
+  span.textContent = txt;
+  return span;
+}
+
+function judgeChip(judge) {
+  const span = document.createElement('span');
+  if (judge.judge_errored) {
+    span.className = 'chip muted';
+    span.textContent = 'judge: neutral (errored)';
+    return span;
+  }
+  const cls = judge.grounded ? 'chip good' : 'chip bad';
+  span.className = cls;
+  const groundedSym = judge.grounded ? '✓' : '✗';
+  const routingSym = judge.routing_ok ? '✓' : '✗';
+  span.textContent = `judge: grounded ${groundedSym} · routing ${routingSym} · ${(judge.score || 0).toFixed(2)}`;
+  return span;
+}
+
+function latencyChip(ms) {
+  const span = document.createElement('span');
+  span.className = 'chip muted';
+  span.textContent = `${ms} ms`;
+  return span;
+}
+
+// ------------------------------------------------------------------
+// Per-chat warnings (transient — wiped on next message)
+// ------------------------------------------------------------------
+function renderChatWarnings(warnings) {
+  const row = document.getElementById('bannerRow');
+  row.querySelectorAll('[data-chat="1"]').forEach(el => el.remove());
+  for (const w of warnings) {
+    if (w.type === 'provider_degraded') continue;  // already in the persistent banner
+    const div = document.createElement('div');
+    div.className = `banner ${w.severity || 'info'}`;
+    div.dataset.chat = '1';
+    div.innerHTML = `
+      <span class="tag">${escapeHtml(w.type)}</span>
+      <span>${escapeHtml(w.message || '')}</span>
+    `;
+    row.appendChild(div);
+  }
+}
+
+// ------------------------------------------------------------------
+// Utilities
+// ------------------------------------------------------------------
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g,
+    c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+// CSS.escape isn't in old browsers — minimal shim for chunk IDs which only
+// contain [A-Z0-9_\-#.] so this trivial pass is safe.
+function cssEscape(s) {
+  return String(s).replace(/([\\#.])/g, '\\$1');
+}
+function scrollToBottom() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+bootstrap();
+</script>
+</body>
+</html>

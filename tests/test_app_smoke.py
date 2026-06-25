@@ -34,7 +34,8 @@ def client(monkeypatch, tmp_path):
     from app.adapters.llm import LLMResponse
     from app.adapters import llm as llm_mod
 
-    def fake_complete(self, system, user, *, temperature=0.0, max_tokens=800, model=None, response_format_json=False):
+    def fake_complete(self, system, user, *, temperature=0.0, max_tokens=800,
+                      model=None, response_format_json=False, pinned_provider=None):
         s = system.lower()
         if "classify" in s:
             if "weather" in user.lower() or "fibonacci" in user.lower():

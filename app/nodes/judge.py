@@ -49,14 +49,16 @@ def make_judge_node(llm: LLMClient, *, model: str | None = None) -> Callable[[Ag
             f"Answer:\n{state.get('answer','')}\n"
         )
         judge_errored = False
+        choice = state.get("judge_choice") or {}
         try:
             resp = llm.complete(
                 system=SYSTEM,
                 user=user,
                 temperature=0.0,
                 max_tokens=400,
-                model=model,
+                model=choice.get("model") or model,
                 response_format_json=True,
+                pinned_provider=choice.get("provider"),
             )
             obj = parse_json_strict(resp.text)
             verdict: JudgeVerdict = {
@@ -65,6 +67,9 @@ def make_judge_node(llm: LLMClient, *, model: str | None = None) -> Callable[[Ag
                 "score": float(obj.get("score", 0.0)),
                 "reasons": [str(x)[:200] for x in (obj.get("reasons") or [])][:5],
                 "model": resp.model,
+                "provider": getattr(resp, "provider", "unknown"),
+                "provider_fallback_used": getattr(resp, "provider_fallback_used", False),
+                "fallback_chain": list(getattr(resp, "fallback_chain", []) or []),
             }
         except Exception as e:
             # Judge couldn't render a verdict. Do NOT downgrade the answer — a

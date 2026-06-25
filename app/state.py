@@ -26,7 +26,15 @@ class JudgeVerdict(TypedDict, total=False):
     score: float
     reasons: list[str]
     model: str
+    provider: str
+    provider_fallback_used: bool
+    fallback_chain: list[str]
     judge_errored: bool  # true when the judge LLM call/parse failed; verdict is neutral
+
+
+class ModelChoice(TypedDict, total=False):
+    provider: str            # 'openrouter' | 'groq'
+    model: str               # e.g. 'openai/gpt-oss-120b:free' or 'llama-3.3-70b-versatile'
 
 
 class AgentState(TypedDict, total=False):
@@ -34,6 +42,8 @@ class AgentState(TypedDict, total=False):
     trace_id: str
     query: str
     session_id: Optional[str]
+    llm_choice: ModelChoice          # per-request override for answer LLM
+    judge_choice: ModelChoice        # per-request override for judge LLM
 
     # classify
     route: Domain

@@ -25,12 +25,22 @@ class FakeLLM:
     def register(self, predicate, response):
         self.handlers.append((predicate, response))
 
-    def complete(self, system, user, *, temperature=0.0, max_tokens=800, model=None, response_format_json=False):
-        self.calls.append({"system": system, "user": user, "model": model})
+    name: str = "fake"
+
+    def complete(self, system, user, *, temperature=0.0, max_tokens=800,
+                 model=None, response_format_json=False, pinned_provider=None):
+        self.calls.append({
+            "system": system, "user": user, "model": model,
+            "pinned_provider": pinned_provider,
+        })
         for predicate, response in self.handlers:
             if predicate(system, user):
                 text = response(system, user) if callable(response) else response
-                return LLMResponse(text=text, model=model or "fake", prompt_tokens=10, completion_tokens=20, raw={})
+                return LLMResponse(
+                    text=text, model=model or "fake",
+                    prompt_tokens=10, completion_tokens=20, raw={},
+                    provider="fake",
+                )
         raise AssertionError(f"No FakeLLM handler matched. system={system[:80]!r} user={user[:120]!r}")
 
 

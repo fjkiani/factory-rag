@@ -1,35 +1,48 @@
 services:
   - type: web
-    name: rag-mvp
+    name: factory-rag
     runtime: python
-    plan: starter
+    plan: free
     autoDeploy: true
-    buildCommand: pip install -r requirements.txt
-    # Ingest the corpus once at deploy. Eval runs as a post-deploy hook
-    # (commented out by default to avoid burning the free LLM tier on every deploy).
-    preDeployCommand: python -m app.corpus.ingest
+    # Free tier has no persistent disk — we bake the index into the build.
+    # Ingest runs at build time so cold starts don't pay for it.
+    buildCommand: pip install -r requirements.txt && python -m app.corpus.ingest
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /healthz
-    disk:
-      name: rag-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
+      # Render mounts the repo at /opt/render/project/src
       - key: DATA_DIR
-        value: /data
+        value: /opt/render/project/src/data
       - key: VECTOR_BACKEND
         value: numpy
+      # --- Pinned to models live-verified to return 200 ---
       - key: LLM_MODEL
-        value: openrouter/auto
+        value: openai/gpt-oss-120b:free
       - key: JUDGE_MODEL
-        value: google/gemini-flash-1.5:free
+        value: openai/gpt-oss-20b:free
       - key: EMBED_MODEL
         value: nvidia/llama-nemotron-embed-vl-1b-v2:free
+      - key: EMBED_BACKEND
+        value: openrouter
+      # Router/retrieval thresholds tuned in step-2 smoke tests
       - key: ROUTE_CONF_THRESHOLD
-        value: "0.5"
-      - key: RETRIEVAL_CONF_THRESHOLD
         value: "0.35"
+      - key: RETRIEVAL_CONF_THRESHOLD
+        value: "0.0"
+      # OpenRouter wants these for attribution + telemetry
+      - key: HTTP_REFERER
+        value: https://github.com/fjkiani/factory-rag
+      - key: APP_TITLE
+        value: factory-rag-mvp
+      # --- Groq fallback / secondary provider ---
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      # --- Secrets: must be set in the Render dashboard, not committed ---
       - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
         sync: false
       - key: ADMIN_TOKEN
         sync: false

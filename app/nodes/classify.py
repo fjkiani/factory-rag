@@ -106,14 +106,16 @@ def make_classify_node(
         llm_error: str | None = None
 
         if llm is not None:
+            choice = state.get("llm_choice") or {}
             try:
                 resp = llm.complete(
                     system=SYSTEM,
                     user=query,
                     temperature=0.0,
                     max_tokens=220,
-                    model=model,
+                    model=choice.get("model") or model,
                     response_format_json=True,
+                    pinned_provider=choice.get("provider"),
                 )
                 obj = parse_json_strict(resp.text)
                 p = obj.get("primary") or {}

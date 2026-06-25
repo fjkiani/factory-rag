@@ -87,12 +87,14 @@ def make_generate_node(llm: LLMClient, *, model: str | None = None) -> Callable[
 
         user = USER_TEMPLATE.format(query=state["query"], chunks=_format_chunks(retrieved))
         sys_prompt = SYSTEM.replace("{domain}", domain)
+        choice = state.get("llm_choice") or {}
         resp = llm.complete(
             system=sys_prompt,
             user=user,
             temperature=0.0,
             max_tokens=600,
-            model=model,
+            model=choice.get("model") or model,
+            pinned_provider=choice.get("provider"),
         )
         text = (resp.text or "").strip()
         cited, text = _extract_citations(text)
@@ -110,6 +112,9 @@ def make_generate_node(llm: LLMClient, *, model: str | None = None) -> Callable[
                 state["citations"] = []
                 state["generation_meta"] = {
                     "model": resp.model,
+                    "provider": getattr(resp, "provider", "unknown"),
+                    "provider_fallback_used": getattr(resp, "provider_fallback_used", False),
+                    "fallback_chain": list(getattr(resp, "fallback_chain", []) or []),
                     "prompt_tokens": resp.prompt_tokens,
                     "completion_tokens": resp.completion_tokens,
                     "fabricated": bad,
@@ -139,6 +144,9 @@ def make_generate_node(llm: LLMClient, *, model: str | None = None) -> Callable[
 
         state["generation_meta"] = {
             "model": resp.model,
+            "provider": getattr(resp, "provider", "unknown"),
+            "provider_fallback_used": getattr(resp, "provider_fallback_used", False),
+            "fallback_chain": list(getattr(resp, "fallback_chain", []) or []),
             "prompt_tokens": resp.prompt_tokens,
             "completion_tokens": resp.completion_tokens,
             "raw_text": text,
