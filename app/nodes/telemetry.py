@@ -26,14 +26,19 @@ def make_telemetry_node(jsonl_path: Path) -> Callable[[AgentState], AgentState]:
             "route": state.get("route"),
             "route_confidence": state.get("route_confidence"),
             "route_reason": state.get("route_reason"),
+            "route_source": state.get("route_source"),
+            "route_candidates": state.get("route_candidates", []),
+            "route_llm_error": state.get("route_llm_error"),
+            "route_used_fallback": state.get("route_used_fallback", False),
             "retrieval": {
-                "collection": f"kb_{state.get('route')}" if state.get("route") not in (None, "none") else None,
+                "collections_queried": list((state.get("retrieved_per_collection") or {}).keys()),
                 "dense_top": state.get("dense_top", []),
                 "sparse_top": state.get("sparse_top", []),
                 "fused_top": [
-                    {"chunk_id": r["chunk_id"], "rrf": r["rrf_score"]}
+                    {"chunk_id": r["chunk_id"], "domain": r.get("domain"), "rrf": r["rrf_score"]}
                     for r in (state.get("retrieved") or [])
                 ],
+                "per_collection": state.get("retrieved_per_collection", {}),
                 "confidence": state.get("retrieval_confidence", 0.0),
             },
             "generation": state.get("generation_meta", {}),

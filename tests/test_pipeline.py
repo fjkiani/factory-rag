@@ -16,10 +16,13 @@ from tests.conftest import FakeLLM
 
 def _llm_for(route: str, gen_text: str, judge_grounded: bool = True) -> FakeLLM:
     llm = FakeLLM()
-    # classify
+    # classify (new shape: primary + alternates)
     llm.register(
         lambda s, u: "classify" in s.lower(),
-        json.dumps({"route": route, "confidence": 0.95, "reason": "ok"}),
+        json.dumps({
+            "primary": {"route": route, "confidence": 0.95, "reason": "ok"},
+            "alternates": [],
+        }),
     )
     # generate
     llm.register(lambda s, u: "manufacturing-floor assistant" in s.lower(), gen_text)
@@ -84,7 +87,7 @@ def test_pipeline_judge_downgrades_ungrounded(tmp_data_dir, ingested_store, hash
 def test_pipeline_out_of_scope(tmp_data_dir, ingested_store, hashing_embedder):
     llm = FakeLLM()
     llm.register(lambda s, u: "classify" in s.lower(),
-                 json.dumps({"route": "none", "confidence": 0.0, "reason": "oos"}))
+                 json.dumps({"primary": {"route": "none", "confidence": 0.0, "reason": "oos"}, "alternates": []}))
     # judge still called -- registers a default verdict
     llm.register(lambda s, u: "you evaluate" in s.lower(),
                  json.dumps({"grounded": True, "routing_ok": True, "score": 0.95, "reasons": ["correctly refused"]}))

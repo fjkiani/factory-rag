@@ -16,8 +16,9 @@ htmlcov/
 .env.*
 !.env.example
 
-# Runtime data (telemetry, generated index, scorecard)
+# Runtime data (telemetry, generated index, scorecard, demo runs)
 data/
+runs/
 *.npz
 *.pkl
 *.jsonl

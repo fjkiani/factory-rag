@@ -8,8 +8,11 @@ from app.nodes.retrieve import make_retrieve_node
 from tests.conftest import FakeLLM
 
 
-def _route_response(route: str, conf: float = 0.95, reason: str = "ok") -> str:
-    return json.dumps({"route": route, "confidence": conf, "reason": reason})
+def _route_response(route: str, conf: float = 0.95, reason: str = "ok", alternates: list | None = None) -> str:
+    return json.dumps({
+        "primary": {"route": route, "confidence": conf, "reason": reason},
+        "alternates": alternates or [],
+    })
 
 
 def test_classify_safety(monkeypatch):

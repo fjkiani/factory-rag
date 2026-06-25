@@ -6,7 +6,9 @@ and CI. The dim is fixed so vectors are comparable across runs.
 from __future__ import annotations
 
 import hashlib
+import random
 import re
+import time
 from typing import Optional, Protocol
 
 import httpx
@@ -27,12 +29,23 @@ class OpenRouterEmbeddings:
     are not exposed there yet; on 404/400 we surface a clear error so the
     caller can swap models via env."""
 
-    def __init__(self, api_key: str, base_url: str, model: str, timeout_s: float = 60.0, expected_dim: int = 1024):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str,
+        timeout_s: float = 60.0,
+        expected_dim: int = 1024,
+        http_referer: str = "https://github.com/fjkiani/factory-rag",
+        app_title: str = "factory-rag-mvp",
+    ):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout_s = timeout_s
         self._dim = expected_dim
+        self.http_referer = http_referer
+        self.app_title = app_title
 
     @property
     def dim(self) -> int:
@@ -44,17 +57,25 @@ class OpenRouterEmbeddings:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://rag-mvp.local",
-            "X-Title": "rag-mvp",
+            "HTTP-Referer": self.http_referer,
+            "X-Title": self.app_title,
         }
         payload = {"model": self.model, "input": texts}
         with httpx.Client(timeout=self.timeout_s) as client:
-            resp = client.post(f"{self.base_url}/embeddings", json=payload, headers=headers)
-        if resp.status_code >= 400:
-            raise RuntimeError(
-                f"OpenRouter embeddings failed {resp.status_code}: {resp.text[:300]} "
-                f"(model={self.model}). Swap EMBED_MODEL or set EMBED_BACKEND=hashing for offline use."
-            )
+            for attempt in range(4):  # 1 try + 3 retries
+                resp = client.post(
+                    f"{self.base_url}/embeddings", json=payload, headers=headers
+                )
+                if resp.status_code < 400:
+                    break
+                retryable = resp.status_code == 429 or 500 <= resp.status_code < 600
+                if attempt < 3 and retryable:
+                    time.sleep(2.0 * (2 ** attempt) + random.uniform(0, 0.5))
+                    continue
+                raise RuntimeError(
+                    f"OpenRouter embeddings failed {resp.status_code}: {resp.text[:300]} "
+                    f"(model={self.model}). Swap EMBED_MODEL or set EMBED_BACKEND=hashing for offline use."
+                )
         data = resp.json()
         vecs = [row["embedding"] for row in data["data"]]
         if vecs:
@@ -99,9 +120,22 @@ class HashingEmbedder:
 
 
 def get_embedder(
-    backend: str, *, api_key: str, base_url: str, model: str, hashing_dim: int = 256
+    backend: str,
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+    hashing_dim: int = 256,
+    http_referer: str = "https://github.com/fjkiani/factory-rag",
+    app_title: str = "factory-rag-mvp",
 ) -> EmbeddingClient:
     backend = (backend or "openrouter").lower()
     if backend == "hashing":
         return HashingEmbedder(dim=hashing_dim)
-    return OpenRouterEmbeddings(api_key=api_key, base_url=base_url, model=model)
+    return OpenRouterEmbeddings(
+        api_key=api_key,
+        base_url=base_url,
+        model=model,
+        http_referer=http_referer,
+        app_title=app_title,
+    )

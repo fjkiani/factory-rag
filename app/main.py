@@ -58,6 +58,13 @@ class JudgeVerdictModel(BaseModel):
     model: str
 
 
+class RouteCandidate(BaseModel):
+    route: str
+    confidence: float
+    reason: str
+    source: str
+
+
 class ChatResponse(BaseModel):
     trace_id: str
     answer: str
@@ -65,6 +72,10 @@ class ChatResponse(BaseModel):
     refusal_reason: Optional[str] = None
     route: Literal["safety", "maintenance", "quality", "none"]
     route_confidence: float
+    route_source: str
+    route_candidates: list[RouteCandidate]
+    route_used_fallback: bool
+    collections_queried: list[str]
     retrieval_confidence: float
     citations: list[Citation]
     judge: Optional[JudgeVerdictModel] = None
@@ -176,6 +187,18 @@ def chat(req: ChatRequest) -> ChatResponse:
         )
 
     judge = state.get("judge")
+    raw_candidates = state.get("route_candidates") or []
+    candidates = [
+        RouteCandidate(
+            route=str(c.get("route", "")),
+            confidence=float(c.get("confidence", 0.0)),
+            reason=str(c.get("reason", "")),
+            source=str(c.get("source", "")),
+        )
+        for c in raw_candidates
+        if c.get("route") in {"safety", "maintenance", "quality", "none"}
+    ]
+    collections_queried = list((state.get("retrieved_per_collection") or {}).keys())
     return ChatResponse(
         trace_id=state["trace_id"],
         answer=state.get("answer", ""),
@@ -183,6 +206,10 @@ def chat(req: ChatRequest) -> ChatResponse:
         refusal_reason=state.get("refusal_reason"),
         route=state.get("route", "none"),
         route_confidence=float(state.get("route_confidence", 0.0)),
+        route_source=str(state.get("route_source", "llm")),
+        route_candidates=candidates,
+        route_used_fallback=bool(state.get("route_used_fallback", False)),
+        collections_queried=collections_queried,
         retrieval_confidence=float(state.get("retrieval_confidence", 0.0)),
         citations=citations,
         judge=JudgeVerdictModel(**judge) if judge else None,

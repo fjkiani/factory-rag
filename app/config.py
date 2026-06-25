@@ -27,6 +27,9 @@ class Config:
     retrieval_conf_threshold: float
     admin_token: str
     data_dir: Path
+    http_referer: str
+    app_title: str
+    embed_backend: str
 
     @property
     def telemetry_path(self) -> Path:
@@ -61,4 +64,7 @@ def load_config() -> Config:
         retrieval_conf_threshold=float(os.getenv("RETRIEVAL_CONF_THRESHOLD", "0.35")),
         admin_token=os.getenv("ADMIN_TOKEN", "change-me"),
         data_dir=data_dir,
+        http_referer=os.getenv("HTTP_REFERER", "https://github.com/fjkiani/factory-rag"),
+        app_title=os.getenv("APP_TITLE", "factory-rag-mvp"),
+        embed_backend=os.getenv("EMBED_BACKEND", "openrouter"),
     )

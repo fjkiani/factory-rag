@@ -38,15 +38,15 @@ def client(monkeypatch, tmp_path):
         s = system.lower()
         if "classify" in s:
             if "weather" in user.lower() or "fibonacci" in user.lower():
-                obj = {"route": "none", "confidence": 0.0, "reason": "oos"}
+                obj = {"primary": {"route": "none", "confidence": 0.0, "reason": "oos"}, "alternates": []}
             elif "ppe" in user.lower() or "lockout" in user.lower():
-                obj = {"route": "safety", "confidence": 0.95, "reason": "safety"}
+                obj = {"primary": {"route": "safety", "confidence": 0.95, "reason": "safety"}, "alternates": []}
             elif "fault" in user.lower() or "lathe" in user.lower():
-                obj = {"route": "maintenance", "confidence": 0.95, "reason": "maintenance"}
+                obj = {"primary": {"route": "maintenance", "confidence": 0.95, "reason": "maintenance"}, "alternates": []}
             elif "aql" in user.lower() or "inspection" in user.lower():
-                obj = {"route": "quality", "confidence": 0.95, "reason": "quality"}
+                obj = {"primary": {"route": "quality", "confidence": 0.95, "reason": "quality"}, "alternates": []}
             else:
-                obj = {"route": "none", "confidence": 0.0, "reason": "default"}
+                obj = {"primary": {"route": "none", "confidence": 0.0, "reason": "default"}, "alternates": []}
             return LLMResponse(text=json.dumps(obj), model=model or "fake", prompt_tokens=10, completion_tokens=10, raw={})
         if "manufacturing-floor assistant" in s:
             # Cite the section we expect: PPE -> SAFETY-LOTO-001#2.0

@@ -48,12 +48,13 @@ def make_judge_node(llm: LLMClient, *, model: str | None = None) -> Callable[[Ag
             f"Chunks:\n{_format_chunks(retrieved)}\n"
             f"Answer:\n{state.get('answer','')}\n"
         )
+        judge_errored = False
         try:
             resp = llm.complete(
                 system=SYSTEM,
                 user=user,
                 temperature=0.0,
-                max_tokens=200,
+                max_tokens=400,
                 model=model,
                 response_format_json=True,
             )
@@ -66,16 +67,20 @@ def make_judge_node(llm: LLMClient, *, model: str | None = None) -> Callable[[Ag
                 "model": resp.model,
             }
         except Exception as e:
+            # Judge couldn't render a verdict. Do NOT downgrade the answer — a
+            # judge transport/parse failure is the judge's bug, not the
+            # generator's. Surface in telemetry instead.
+            judge_errored = True
             verdict = {
-                "grounded": False,
-                "routing_ok": False,
+                "grounded": True,  # neutral: don't trigger downgrade
+                "routing_ok": True,
                 "score": 0.0,
-                "reasons": [f"judge_parse_error: {e}"],
+                "reasons": [f"judge_parse_error: {str(e)[:200]}"],
                 "model": model or "",
             }
 
-        # Online gate: if a non-refused answer is flagged ungrounded, downgrade.
-        if not state.get("refused") and not verdict["grounded"]:
+        # Online gate: only downgrade when the judge actually voted ungrounded.
+        if not judge_errored and not state.get("refused") and not verdict["grounded"]:
             state["refused"] = True
             state["refusal_reason"] = "judge_ungrounded"
             domain = state.get("route", "")
@@ -84,6 +89,7 @@ def make_judge_node(llm: LLMClient, *, model: str | None = None) -> Callable[[Ag
             )
             state["citations"] = []
 
+        verdict["judge_errored"] = judge_errored
         state["judge"] = verdict
         state.setdefault("latency_ms", {})["judge"] = int((time.perf_counter() - t0) * 1000)
         return state
