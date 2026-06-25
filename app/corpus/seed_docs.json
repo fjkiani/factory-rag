@@ -1,0 +1,90 @@
+{
+  "documents": [
+    {
+      "doc_id": "SAFETY-LOTO-001",
+      "domain": "safety",
+      "title": "Lockout/Tagout Procedure — Hydraulic Press HP-200",
+      "sections": [
+        {
+          "section_id": "1.0",
+          "heading": "Scope",
+          "body": "This procedure applies to the HP-200 hydraulic press and all energy sources connected to it: 480 VAC three-phase electrical, hydraulic accumulator at 2,100 psi, pneumatic supply at 90 psi, and stored mechanical energy in the ram. All authorized employees must follow these steps before any maintenance, adjustment, die change, or unjamming operation. Only employees who have completed the annual LOTO training and have been issued a personal lock and tag may perform isolation. Affected employees must be notified before isolation begins and after restoration is complete."
+        },
+        {
+          "section_id": "2.0",
+          "heading": "Required PPE",
+          "body": "Before starting isolation, don the following PPE: ANSI Z87.1 safety glasses with side shields, cut-resistant gloves rated ANSI A4 or higher, steel-toed boots meeting ASTM F2413, and hearing protection if working within 3 meters of running equipment. A hard hat is required if any overhead work or crane activity is in progress in the cell. Do not wear loose clothing, jewelry, or lanyards near the press."
+        },
+        {
+          "section_id": "3.0",
+          "heading": "Six-Step Lockout Sequence",
+          "body": "Perform the following steps in order: (1) Notify all affected employees that LOTO is about to begin. (2) Shut down the HP-200 using the cycle-stop button, then the master power switch on the operator console. (3) Isolate all energy sources: open the wall disconnect for the 480 VAC feed, close the hydraulic isolation valve V-12, close the pneumatic isolation valve V-7, and lower the ram to its mechanical stop to release stored energy. (4) Apply your personal lock and tag to each isolation point. Each authorized employee applies their own lock; no shared locks. (5) Dissipate stored energy: bleed the hydraulic accumulator via bleed valve B-3 until the gauge reads 0 psi, and bleed the pneumatic line via valve B-1. (6) Verify zero energy by attempting to start the press from the operator console; the press must not respond."
+        },
+        {
+          "section_id": "4.0",
+          "heading": "Verification",
+          "body": "Before any contact with hazardous components, an authorized employee must verify zero-energy state by all of the following: visually confirm that the wall disconnect is in the OPEN position and locked; confirm the hydraulic pressure gauge G-1 reads 0 psi; confirm the pneumatic gauge G-2 reads 0 psi; and depress the start button on the operator console to confirm no motion. If any verification fails, do not proceed. Re-isolate and investigate the cause before work begins."
+        },
+        {
+          "section_id": "5.0",
+          "heading": "Restoration to Service",
+          "body": "To return the HP-200 to service: (1) Remove all tools, fixtures, and personnel from the press envelope. (2) Replace all guards and verify interlocks are engaged. (3) Each employee removes only their own lock and tag. (4) Re-energize sources in this order: open V-7 (pneumatic), open V-12 (hydraulic), close the wall disconnect (electrical). (5) Notify affected employees that the press is being restored. (6) Perform a no-load test cycle from the operator console before resuming production. If any abnormal noise, leak, or motion occurs, immediately re-execute the lockout sequence in Section 3.0."
+        }
+      ]
+    },
+    {
+      "doc_id": "MAINT-CNC-014",
+      "domain": "maintenance",
+      "title": "CNC Lathe Model L-450 — Preventive Maintenance Schedule",
+      "sections": [
+        {
+          "section_id": "1.0",
+          "heading": "Daily Checks",
+          "body": "At the start of every shift, the operator performs the following daily checks on the L-450: inspect the way covers for damage; verify the coolant level is between MIN and MAX on the sight glass and top up with Type-B water-soluble coolant if needed; check chuck jaw clamping force using the calibrated test bar (must read between 8.5 and 9.5 kN); inspect spindle for unusual noise or vibration during a 30-second warm-up at 500 RPM; and verify the chip conveyor is clear and operating. Log the results in the daily check sheet. Any failed check requires immediate notification of the maintenance team and a red-tag on the operator panel."
+        },
+        {
+          "section_id": "2.0",
+          "heading": "500-Hour Service",
+          "body": "Every 500 spindle hours, perform the following: drain and replace the spindle oil (1.8 liters of Mobil Velocite No. 6); clean and inspect the way wipers and replace if worn; inspect the ball-screw bearings for axial play (maximum allowable 0.02 mm); verify the turret indexing time is within 0.45–0.55 s for a 90-degree index; and recalibrate the tool-length probe against the master setting block. Reset the 500-hour counter on the HMI under Maintenance > Counters > 500h. Required parts kit: PM-L450-500h."
+        },
+        {
+          "section_id": "3.0",
+          "heading": "Lubrication Specs",
+          "body": "Lubrication points and intervals: spindle oil — Mobil Velocite No. 6, 1.8 L, every 500 hours. Ways — Mobilgear 600 XP 68, 0.05 L/cycle, automatic from the central lube pump every 30 minutes during operation. Ball-screws — Mobilux EP 2 grease, 5 g per ball-nut, every 200 hours via the labeled grease nipples. Turret bearings — Mobil SHC 632, 0.2 L, every 2,000 hours. Never mix lubricant types; flush thoroughly when changing brands."
+        },
+        {
+          "section_id": "4.0",
+          "heading": "Common Fault Codes",
+          "body": "Fault code reference for the L-450 controller: E-101 spindle overload — check tool wear and feed rate; reduce feed by 10% and re-run. E-204 coolant low — refill coolant tank to MAX; clear fault on the HMI. E-318 ball-screw axial deviation — measure axial play; if greater than 0.02 mm, schedule ball-screw service kit MAINT-L450-BS. E-405 turret index timeout — check turret pneumatic pressure (must be 5.5–6.5 bar) and inspect index sensor S-12; clean with isopropyl alcohol. E-512 emergency stop circuit — verify all E-stop buttons are released and the fence interlock is closed before reset."
+        }
+      ]
+    },
+    {
+      "doc_id": "QC-ISO-009",
+      "domain": "quality",
+      "title": "ISO 9001 Final Inspection SOP — Machined Parts",
+      "sections": [
+        {
+          "section_id": "1.0",
+          "heading": "Sampling Plan (AQL 1.0)",
+          "body": "Final inspection of machined parts follows ANSI/ASQ Z1.4 single sampling plan, normal inspection, AQL 1.0. For a lot size of 91–150 pieces, the sample size is 20 with accept on 0 defects and reject on 1 defect. For 151–280 pieces, sample size 32 with accept 1 / reject 2. For 281–500 pieces, sample size 50 with accept 2 / reject 3. Sampling is random across the production order; the QC inspector documents the lot ID, sample size, and disposition on Form QC-F-22. Any rejected lot triggers 100% inspection of the remaining pieces."
+        },
+        {
+          "section_id": "2.0",
+          "heading": "Dimensional Inspection",
+          "body": "Dimensional inspection uses calibrated instruments traceable to NIST: digital calipers (resolution 0.01 mm) for general dimensions, micrometers (resolution 0.001 mm) for critical diameters, and CMM probing for features with GD&T tolerance ≤ 0.05 mm. The inspector records actual measured values, not pass/fail only. Each part must be checked at three locations along its critical features. Out-of-tolerance findings must be flagged in red on the inspection report and routed per Section 4.0 (Non-Conformance Disposition)."
+        },
+        {
+          "section_id": "3.0",
+          "heading": "Surface Finish Criteria",
+          "body": "Surface finish is verified with a calibrated profilometer reporting Ra in micrometers. Acceptance criteria by feature: bearing fit surfaces Ra ≤ 0.4 µm; general turned surfaces Ra ≤ 1.6 µm; sealing faces Ra ≤ 0.8 µm with no visible chatter marks; threaded surfaces inspected visually against the threaded master sample (no torn flanks, no burrs). Profilometer stylus must be re-zeroed against the calibration block at the start of each shift. Any reading above the threshold is recorded with the part serial and routed to Engineering for disposition."
+        },
+        {
+          "section_id": "4.0",
+          "heading": "Non-Conformance Disposition",
+          "body": "Non-conforming parts are tagged with a yellow NCR label bearing the unique NCR number, isolated to the quarantine area within 1 hour of discovery, and entered into the NCR log within the same shift. Disposition options: USE-AS-IS requires Engineering and Quality Manager signature on Form QC-F-30; REWORK requires a documented rework instruction and re-inspection at 100%; SCRAP requires destruction of the part and update of the lot disposition. Disposition must be completed within 5 working days of NCR creation."
+        }
+      ]
+    }
+  ]
+}

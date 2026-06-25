@@ -1,0 +1,28 @@
+{
+  "questions": [
+    {"id": "S1", "query": "What PPE is required before locking out the HP-200 press?", "expected_route": "safety", "expected_refusal": false, "must_cite_any_of": ["SAFETY-LOTO-001#2.0"]},
+    {"id": "S2", "query": "List the six-step lockout sequence for the hydraulic press.", "expected_route": "safety", "expected_refusal": false, "must_cite_any_of": ["SAFETY-LOTO-001#3.0"]},
+    {"id": "S3", "query": "How do I verify zero-energy state before opening the press guard?", "expected_route": "safety", "expected_refusal": false, "must_cite_any_of": ["SAFETY-LOTO-001#4.0"]},
+    {"id": "S4", "query": "What is the order to re-energize the press after restoration?", "expected_route": "safety", "expected_refusal": false, "must_cite_any_of": ["SAFETY-LOTO-001#5.0"]},
+    {"id": "S5", "query": "What is the scope of the LOTO procedure and who can perform it?", "expected_route": "safety", "expected_refusal": false, "must_cite_any_of": ["SAFETY-LOTO-001#1.0"]},
+
+    {"id": "M1", "query": "What are the daily checks for the L-450 CNC lathe?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#1.0"]},
+    {"id": "M2", "query": "What is performed during the 500-hour service on the L-450?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#2.0"]},
+    {"id": "M3", "query": "Which lubricants and intervals are specified for the L-450 spindle and ways?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#3.0"]},
+    {"id": "M4", "query": "How do I respond to fault code E-318 on the L-450 controller?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#4.0"]},
+    {"id": "M5", "query": "How do I clear an E-405 turret index timeout?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#4.0"]},
+
+    {"id": "Q1", "query": "What sample size and accept/reject numbers apply to a lot of 200 machined parts at AQL 1.0?", "expected_route": "quality", "expected_refusal": false, "must_cite_any_of": ["QC-ISO-009#1.0"]},
+    {"id": "Q2", "query": "Which instruments are required for dimensional inspection of GD&T features tighter than 0.05 mm?", "expected_route": "quality", "expected_refusal": false, "must_cite_any_of": ["QC-ISO-009#2.0"]},
+    {"id": "Q3", "query": "What Ra values are acceptable for bearing fit surfaces and sealing faces?", "expected_route": "quality", "expected_refusal": false, "must_cite_any_of": ["QC-ISO-009#3.0"]},
+    {"id": "Q4", "query": "What is the disposition process when a non-conforming part is found?", "expected_route": "quality", "expected_refusal": false, "must_cite_any_of": ["QC-ISO-009#4.0"]},
+    {"id": "Q5", "query": "What triggers a 100% inspection of a lot under the sampling plan?", "expected_route": "quality", "expected_refusal": false, "must_cite_any_of": ["QC-ISO-009#1.0"]},
+
+    {"id": "OOS1", "query": "What is the weather in Houston tomorrow?", "expected_route": "none", "expected_refusal": true},
+    {"id": "OOS2", "query": "Who won the World Cup in 2022?", "expected_route": "none", "expected_refusal": true},
+    {"id": "OOS3", "query": "Can you write me a Python function to compute Fibonacci numbers?", "expected_route": "none", "expected_refusal": true},
+
+    {"id": "AMB1", "query": "What does inspection require for the L-450 spindle?", "expected_route": "maintenance", "expected_refusal": false, "must_cite_any_of": ["MAINT-CNC-014#1.0", "MAINT-CNC-014#2.0"]},
+    {"id": "AMB2", "query": "How do I lock out the lathe before maintenance?", "expected_route": "safety", "expected_refusal": true, "notes": "lathe LOTO is not documented in the safety corpus (HP-200 only); strict cite-or-refuse should refuse rather than misapply HP-200 steps"}
+  ]
+}

@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: rag-mvp
+    runtime: python
+    plan: starter
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    # Ingest the corpus once at deploy. Eval runs as a post-deploy hook
+    # (commented out by default to avoid burning the free LLM tier on every deploy).
+    preDeployCommand: python -m app.corpus.ingest
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    disk:
+      name: rag-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: VECTOR_BACKEND
+        value: numpy
+      - key: LLM_MODEL
+        value: openrouter/auto
+      - key: JUDGE_MODEL
+        value: google/gemini-flash-1.5:free
+      - key: EMBED_MODEL
+        value: nvidia/llama-nemotron-embed-vl-1b-v2:free
+      - key: ROUTE_CONF_THRESHOLD
+        value: "0.5"
+      - key: RETRIEVAL_CONF_THRESHOLD
+        value: "0.35"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false

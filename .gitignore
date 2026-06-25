@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.eggs/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data (telemetry, generated index, scorecard)
+data/
+*.npz
+*.pkl
+*.jsonl
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
